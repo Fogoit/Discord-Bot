@@ -8,7 +8,7 @@ import sqlite3
 connection = sqlite3.connect('database/memories.db')
 cursor = connection.cursor()
 
-GUILD = discord.Object(id=settings.dev_server_id)
+GUILD = discord.Object(id=settings.pagoda_server_id)
 
 class Client(commands.Bot):
     #Initiation
@@ -26,7 +26,7 @@ class Client(commands.Bot):
     #Message event reaction
     async def on_message(self, message):
 
-        HI_TRIGGER = ('hi', 'hello', 'i', 'y')
+        HI_TRIGGER = ('hi', 'hello', 'i')
 
         if message.author == self.user:
             return
@@ -45,6 +45,11 @@ class Client(commands.Bot):
         if message.content.startswith(HI_TRIGGER):
             await message.channel.send('hey guy’s its me nickbot!')
 
+        if message.content.startswith('y'):
+            await message.channel.send('hey im nickbot.!')
+        
+        if 'mr mime' in message.content.lower():
+            await message.channel.send('leave mr mimes name our of your Dirty fucking mouth and we wont have a problem')
 
 intents = discord.Intents.default()
 intents.message_content = True
