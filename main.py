@@ -3,29 +3,49 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-DEV_GUILD = discord.Object(id=settings.dev_server_id)
+import sqlite3
+
+connection = sqlite3.connect('database/memories.db')
+cursor = connection.cursor()
+
+GUILD = discord.Object(id=settings.dev_server_id)
 
 class Client(commands.Bot):
+    #Initiation
     async def on_ready(self):
-        #Initiation
-        game = discord.Game("your mom")
-        await self.change_presence(status=discord.Status.idle, activity=game)
         print(f'Logged on as {self.user}')
 
         #Slash Command Sync
         try: 
-            synced = await self.tree.sync(guild=DEV_GUILD)
-            print(f'Synced {len(synced)} commands to guild {DEV_GUILD.id}')
+            synced = await self.tree.sync(guild=GUILD)
+            print(f'Synced {len(synced)} commands to guild {GUILD.id}')
         
         except Exception as e:
             print(f'Error syncing commands: {e}')
     
+    #Message event reaction
     async def on_message(self, message):
+
+        HI_TRIGGER = ('hi', 'hello', 'i', 'y')
+
         if message.author == self.user:
             return
         
-        if message.content.startswith('hello'):
-            await message.channel.send(f'Hi there, {message.author.display_name}.')
+        match message.content.lower():
+            case 'excelsior':
+                #Fetch random quote here, then send.
+                result = cursor.execute('SELECT quote FROM quotes ORDER BY RANDOM() LIMIT 1')
+                quote = result.fetchone()
+                await message.channel.send(quote[0])
+
+            case 'cookies':
+                await message.channel.send('mmmmmmm')
+
+            case 'front':
+                await message.channel.send('One')
+        
+        if message.content.startswith(HI_TRIGGER):
+            await message.channel.send('hey guy’s its me nickbot!')
 
 
 intents = discord.Intents.default()
@@ -33,13 +53,47 @@ intents.message_content = True
 client = Client(command_prefix='!', intents=intents)
 
 #Slash Commands
-@client.tree.command(name="hello", description="Says hello to you :)", guild=DEV_GUILD)
-async def sayHello(interaction: discord.Integration):
-    await interaction.response.send_message("Hi there!")
 
-@client.tree.command(name="printer", description="Will print shit!", guild=DEV_GUILD)
-async def printer(interaction: discord.Integration, printer: str):
-    await interaction.response.send_message(printer)
+#List Quotes
+@client.tree.command(name="list", description="Lists all quotes", guild=GUILD)
+async def listQuotes(interaction: discord.Integration):
+
+    result = cursor.execute('SELECT * FROM quotes')
+    quotes = result.fetchall()
+    quoteList = []
+
+    for quote in quotes:
+        quoteList.append('ID: ' + str(quote[0]) + ' - "' + quote[1] + '"')
+    
+    await interaction.response.send_message('\n'.join(quoteList))
+
+#Add Quote
+@client.tree.command(name="add", description="Adds a quote to excelsior database.", guild=GUILD)
+async def addQuote(interaction: discord.Integration, quote: str):
+    if interaction.user.id in settings.admin_ids:
+
+        data = [quote]
+        cursor.execute('INSERT INTO `quotes` (`quote`) VALUES (?)', data)
+        connection.commit()
+
+        await interaction.response.send_message(f'Quote added: "{quote}".')
+
+    else:
+        await interaction.response.send_message('nuh uh')
+    
+#Remove Quote
+@client.tree.command(name="remove", description="Removes a quote from excelsior database.", guild=GUILD)
+async def removeQuote(interaction: discord.Integration, id: int):
+    if interaction.user.id in settings.admin_ids:
+
+        data = [id]
+        cursor.execute('DELETE FROM quotes WHERE id=?', data)
+        connection.commit()
+
+        await interaction.response.send_message('Quote removed.')
+
+    else:
+        await interaction.response.send_message('nuh uh')
 
 #Starts this mess
 client.run(settings.token)
