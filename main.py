@@ -26,7 +26,7 @@ class Client(commands.Bot):
     #Message event reaction
     async def on_message(self, message):
 
-        HI_TRIGGER = ('hi', 'hello', 'i')
+        HI_TRIGGER = ('hi', 'hello')
 
         if message.author == self.user:
             return
@@ -44,9 +44,6 @@ class Client(commands.Bot):
         
         if message.content.startswith(HI_TRIGGER):
             await message.channel.send('hey guy’s its me nickbot!')
-
-        if message.content.startswith('y'):
-            await message.channel.send('hey im nickbot.!')
         
         if 'mr mime' in message.content.lower():
             await message.channel.send('leave mr mimes name our of your Dirty fucking mouth and we wont have a problem')
