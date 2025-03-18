@@ -8,7 +8,7 @@ import sqlite3
 connection = sqlite3.connect('database/memories.db')
 cursor = connection.cursor()
 
-GUILD = discord.Object(id=settings.dev_server_id)
+GUILD = discord.Object(id=settings.pagoda_server_id)
 
 class Client(commands.Bot):
     #Initiation
