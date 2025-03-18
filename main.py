@@ -8,7 +8,7 @@ import sqlite3
 connection = sqlite3.connect('database/memories.db')
 cursor = connection.cursor()
 
-GUILD = discord.Object(id=settings.pagoda_server_id)
+GUILD = discord.Object(id=settings.dev_server_id)
 
 class Client(commands.Bot):
     #Initiation
@@ -37,10 +37,8 @@ class Client(commands.Bot):
                 result = cursor.execute('SELECT quote FROM quotes ORDER BY RANDOM() LIMIT 1')
                 quote = result.fetchone()
                 await message.channel.send(quote[0])
-
             case 'cookies':
                 await message.channel.send('mmmmmmm')
-
             case 'front':
                 await message.channel.send('One')
         
@@ -58,14 +56,19 @@ client = Client(command_prefix='!', intents=intents)
 @client.tree.command(name="list", description="Lists all quotes", guild=GUILD)
 async def listQuotes(interaction: discord.Integration):
 
-    result = cursor.execute('SELECT * FROM quotes')
-    quotes = result.fetchall()
-    quoteList = []
+    if interaction.user.id in settings.admin_ids:
 
-    for quote in quotes:
-        quoteList.append('ID: ' + str(quote[0]) + ' - "' + quote[1] + '"')
+        result = cursor.execute('SELECT * FROM quotes')
+        quotes = result.fetchall()
+        quoteList = []
+
+        for quote in quotes:
+            quoteList.append('ID: ' + str(quote[0]) + ' - "' + quote[1] + '"')
     
-    await interaction.response.send_message('\n'.join(quoteList))
+        await interaction.response.send_message('\n'.join(quoteList))
+
+    else:
+        await interaction.response.send_message('nuh uh')
 
 #Add Quote
 @client.tree.command(name="add", description="Adds a quote to excelsior database.", guild=GUILD)
