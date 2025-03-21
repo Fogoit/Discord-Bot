@@ -26,7 +26,8 @@ class Client(commands.Bot):
     #Message event reaction
     async def on_message(self, message):
 
-        HI_TRIGGER = ('hi', 'hello')
+        if message.guild.id != GUILD.id:
+            return
 
         if message.author == self.user:
             return
@@ -37,16 +38,22 @@ class Client(commands.Bot):
                 result = cursor.execute('SELECT quote FROM quotes ORDER BY RANDOM() LIMIT 1')
                 quote = result.fetchone()
                 await message.channel.send(quote[0])
-            case 'cookies':
-                await message.channel.send('mmmmmmm')
             case 'front':
                 await message.channel.send('One')
         
+        HI_TRIGGER = ('hi guys', 'hello guys')
+
         if message.content.startswith(HI_TRIGGER):
             await message.channel.send('hey guy’s its me nickbot!')
         
         if 'mr mime' in message.content.lower():
             await message.channel.send('leave mr mimes name our of your Dirty fucking mouth and we wont have a problem')
+
+        if 'cookies' in message.content.lower():
+            await message.channel.send('mmmmmmm')
+
+        if client.user.mentioned_in(message):
+            await message.channel.send('moshi moshi?') 
 
 intents = discord.Intents.default()
 intents.message_content = True
